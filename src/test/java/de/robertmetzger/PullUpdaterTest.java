@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
 import org.junit.Test;
 
 
@@ -26,14 +28,14 @@ public class PullUpdaterTest
 
     @Test
     public void testLength() {
-        List<String> res = PullUpdater.normalizeComponents(Collections.singletonList(
+        Set<String> res = PullUpdater.normalizeComponents(Collections.singletonList(
             "Formats(JSON,Avro,Parquet,ORC,SequenceFile)"));
 
-        assertEquals("component=Formats", res.get(0));
+        assertTrue(res.contains("component=Formats"));
 
         res = PullUpdater.normalizeComponents(Collections.singletonList(
             "API/DataSet"));
 
-        assertEquals("component=API/DataSet", res.get(0));
+        assertTrue(res.contains("component=API/DataSet"));
     }
 }

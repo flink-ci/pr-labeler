@@ -4,16 +4,15 @@ package de.robertmetzger;
 import java.io.FileNotFoundException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import okhttp3.Cache;
-import org.apache.commons.collections4.CollectionUtils;
 import org.kohsuke.github.GHDirection;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHLabel;
@@ -133,19 +132,17 @@ public class PullUpdater {
             if(jiraId == null) {
                 continue;
             }
-            List<String> jiraComponents = normalizeComponents(jira.getComponents(jiraId));
-            List<String> requiredLabels = getComponentLabels(jiraComponents);
+            Set<String> jiraComponents = normalizeComponents(jira.getComponents(jiraId));
+            Set<String> requiredLabels = getComponentLabels(jiraComponents);
 
-            Collection<String> existingPRLabels = labelCache.getLabelsFor(pullRequest).stream().filter(l -> l.startsWith(COMPONENT_PREFIX)).collect(
-                Collectors.toList());
-            Collection<String> correctLabels = CollectionUtils.intersection(
-                requiredLabels,
-                existingPRLabels);
-            existingPRLabels.removeAll(correctLabels);
-            Collection<String> toRemove = existingPRLabels;
+            Set<String> existingPRLabels = labelCache.getLabelsFor(pullRequest).stream().filter(l -> l.startsWith(COMPONENT_PREFIX)).collect(
+                Collectors.toSet());
 
-            requiredLabels.removeAll(correctLabels);
-            Collection<String> toAdd = requiredLabels;
+            Set<String> toAdd = new HashSet<>(requiredLabels);
+            toAdd.removeAll(existingPRLabels);
+
+            Set<String> toRemove = new HashSet<>(existingPRLabels);
+            toRemove.removeAll(requiredLabels);
 
             if(toRemove.size() > 0 || toAdd.size() > 0 ) {
                 GHPullRequest writablePR = uncachedRepoForWritingLabels.getPullRequest(pullRequest.getNumber());
@@ -156,9 +153,9 @@ public class PullUpdater {
         }
     }
 
-    private List<String> getComponentLabels(List<String> jiraComponents) throws
+    private Set<String> getComponentLabels(Set<String> jiraComponents) throws
         IOException {
-        List<String> labels = new ArrayList<>(jiraComponents.size());
+        Set<String> labels = new HashSet<>(jiraComponents.size());
         for(String label: jiraComponents) {
             try {
                 labels.add(createOrGetLabel(label));
@@ -190,9 +187,9 @@ public class PullUpdater {
         return null;
     }
 
-    public static List<String> normalizeComponents(List<String> components) {
+    public static Set<String> normalizeComponents(List<String> components) {
         if(components.size() == 0) {
-            return Collections.singletonList(COMPONENT_PREFIX+"<none>");
+            return Collections.singleton(COMPONENT_PREFIX+"<none>");
         }
         return components
                 .stream()
@@ -203,6 +200,6 @@ public class PullUpdater {
                     String s = COMPONENT_PREFIX + c.replaceAll(" ", "");
                     return s.substring(0, Math.min(s.length(), 50));
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }
