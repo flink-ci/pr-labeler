@@ -125,6 +125,7 @@ public class PullUpdater {
         for (GHPullRequest pullRequest : prQuery.list()) {
             String jiraId = extractJiraId(pullRequest.getTitle());
             if(jiraId == null) {
+                LOG.warn("Failed to extract Jira ID from PR '{}'.", pullRequest.getTitle());
                 continue;
             }
             Set<String> jiraComponents = normalizeComponents(jira.getComponents(jiraId));
