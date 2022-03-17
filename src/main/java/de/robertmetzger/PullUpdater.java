@@ -141,9 +141,13 @@ public class PullUpdater {
                 toRemove.removeAll(requiredLabels);
 
                 if (toRemove.size() > 0 || toAdd.size() > 0) {
-                    pullRequest.addLabels(toAdd.toArray(new String[]{}));
-                    pullRequest.removeLabels(toRemove.toArray(new String[]{}));
                     LOG.info("Updating PR '{}' adding labels '{}', removing '{}'", pullRequest.getTitle(), toAdd, toRemove);
+                    if (!toAdd.isEmpty()) {
+                        pullRequest.addLabels(toAdd.toArray(new String[]{}));
+                    }
+                    if (!toRemove.isEmpty()) {
+                        pullRequest.removeLabels(toRemove.toArray(new String[]{}));
+                    }
                 } else {
                     LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
                 }
