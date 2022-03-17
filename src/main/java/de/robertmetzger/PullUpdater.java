@@ -127,25 +127,28 @@ public class PullUpdater {
             if(jiraId == null) {
                 LOG.warn("Failed to extract Jira ID from PR '{}'.", pullRequest.getTitle());
                 continue;
-            }
-            Set<String> jiraComponents = normalizeComponents(jira.getComponents(jiraId));
-            Set<String> requiredLabels = getComponentLabels(jiraComponents);
+            } try {
+                Set<String> jiraComponents = normalizeComponents(jira.getComponents(jiraId));
+                Set<String> requiredLabels = getComponentLabels(jiraComponents);
 
-            Set<String> existingPRLabels = labelCache.getLabelsFor(pullRequest).stream().filter(l -> l.startsWith(COMPONENT_PREFIX)).collect(
-                Collectors.toSet());
+                Set<String> existingPRLabels = labelCache.getLabelsFor(pullRequest).stream().filter(l -> l.startsWith(COMPONENT_PREFIX)).collect(
+                    Collectors.toSet());
 
-            Set<String> toAdd = new HashSet<>(requiredLabels);
-            toAdd.removeAll(existingPRLabels);
+                Set<String> toAdd = new HashSet<>(requiredLabels);
+                toAdd.removeAll(existingPRLabels);
 
-            Set<String> toRemove = new HashSet<>(existingPRLabels);
-            toRemove.removeAll(requiredLabels);
+                Set<String> toRemove = new HashSet<>(existingPRLabels);
+                toRemove.removeAll(requiredLabels);
 
-            if(toRemove.size() > 0 || toAdd.size() > 0 ) {
-                pullRequest.addLabels(toAdd.toArray(new String[]{}));
-                pullRequest.removeLabels(toRemove.toArray(new String[]{}));
-                LOG.info("Updating PR '{}' adding labels '{}', removing '{}'", pullRequest.getTitle(), toAdd, toRemove);
-            } else {
-                LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
+                if (toRemove.size() > 0 || toAdd.size() > 0) {
+                    pullRequest.addLabels(toAdd.toArray(new String[]{}));
+                    pullRequest.removeLabels(toRemove.toArray(new String[]{}));
+                    LOG.info("Updating PR '{}' adding labels '{}', removing '{}'", pullRequest.getTitle(), toAdd, toRemove);
+                } else {
+                    LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
+                }
+            } catch (Exception e) {
+                LOG.error("An error occurred while processing PR '{}'.", pullRequest.getTitle(), e);
             }
         }
     }
