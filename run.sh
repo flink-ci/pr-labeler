@@ -1,3 +1,3 @@
 #!/bin/bash
 
-MAVEN_OPTS="-Xmx2G"  mvn exec:java
+MAVEN_OPTS="-Xmx2G"  mvn exec:java > labeler.out 2>&1 &
