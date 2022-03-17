@@ -140,9 +140,8 @@ public class PullUpdater {
             toRemove.removeAll(requiredLabels);
 
             if(toRemove.size() > 0 || toAdd.size() > 0 ) {
-                GHPullRequest writablePR = uncachedRepoForWritingLabels.getPullRequest(pullRequest.getNumber());
-                writablePR.addLabels(toAdd.toArray(new String[]{}));
-                writablePR.removeLabels(toRemove.toArray(new String[]{}));
+                pullRequest.addLabels(toAdd.toArray(new String[]{}));
+                pullRequest.removeLabels(toRemove.toArray(new String[]{}));
                 LOG.info("Updating PR '{}' adding labels '{}', removing '{}'", pullRequest.getTitle(), toAdd, toRemove);
             } else {
                 LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
