@@ -110,16 +110,11 @@ public class PullUpdater {
         // Use a deterministic query (only the last page changes)
         // TODO: this doesn't work
 
-        List<GHPullRequest> pullRequests = null;
-
         GHPullRequestQueryBuilder prQuery = cachedRepoForPulls.queryPullRequests();
         prQuery.state(GHIssueState.ALL);
         prQuery.sort(GHPullRequestQueryBuilder.Sort.CREATED);
         prQuery.direction(GHDirection.DESC); // start with newest PRs
-        pullRequests = prQuery.list().asList();
 
-
-        LOG.info("Retrieved " + pullRequests.size() + " pull requests");
         try {
             LOG.info("GitHub API limits read: {}, write: {}", cachedGitHubForPulls.getRateLimit(), uncachedGitHubForWritingLabels.getRateLimit());
         } catch (IOException e) {
@@ -127,7 +122,7 @@ public class PullUpdater {
         }
 
 
-        for (GHPullRequest pullRequest : pullRequests) {
+        for (GHPullRequest pullRequest : prQuery.list()) {
             String jiraId = extractJiraId(pullRequest.getTitle());
             if(jiraId == null) {
                 continue;
@@ -149,6 +144,8 @@ public class PullUpdater {
                 writablePR.addLabels(toAdd.toArray(new String[]{}));
                 writablePR.removeLabels(toRemove.toArray(new String[]{}));
                 LOG.info("Updating PR '{}' adding labels '{}', removing '{}'", pullRequest.getTitle(), toAdd, toRemove);
+            } else {
+                LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
             }
         }
     }
