@@ -20,6 +20,7 @@ import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestQueryBuilder;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.github.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +152,9 @@ public class PullUpdater {
                 } else {
                     LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
                 }
-            } catch (Exception e) {
+            } catch (HttpException e) {
+                LOG.error("An error occurred while processing PR '{}': {} {}.", pullRequest.getTitle(), e.getResponseCode(), e.getResponseMessage(), e);
+            }catch (Exception e) {
                 LOG.error("An error occurred while processing PR '{}'.", pullRequest.getTitle(), e);
             }
         }
