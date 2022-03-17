@@ -59,8 +59,8 @@
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp-urlconnection</artifactId>
-      <version>3.13.1</version>
+      <artifactId>okhttp</artifactId>
+      <version>4.9.2</version>
     </dependency>
 
     <!-- logging -->

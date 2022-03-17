@@ -6,10 +6,9 @@ import java.io.InputStream;
 import java.util.Properties;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
-import okhttp3.OkUrlFactory;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
-import org.kohsuke.github.extras.OkHttp3Connector;
+import org.kohsuke.github.extras.okhttp3.OkHttpGitHubConnector;
 
 public class Utils {
     public static Properties getConfig(String filename) {
@@ -33,9 +32,11 @@ public class Utils {
         Cache cache = null;
         if(cacheDir != null) {
             cache = new Cache(new File(cacheDir), cacheMB * 1024 * 1024);
-            OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
-            okHttpClient.cache(cache);
-            ghBuilder.withConnector(new OkHttp3Connector(new OkUrlFactory(okHttpClient.build())));
+            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .cache(cache)
+                .build();
+            ghBuilder
+                .withConnector(new OkHttpGitHubConnector(okHttpClient));
         }
         GitHub gh = ghBuilder.build();
         if (!gh.isCredentialValid()) {
