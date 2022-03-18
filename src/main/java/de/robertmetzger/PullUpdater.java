@@ -4,10 +4,10 @@ package de.robertmetzger;
 import java.io.FileNotFoundException;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,30 +42,30 @@ public class PullUpdater {
     private DiskCachedJira jira;
 
 
-    public PullUpdater(Properties prop, DiskCachedJira jira, PullRequestLabelCache labelCache, String repoName) throws
+    public PullUpdater(String user, String token, int mainCacheMB, Path directory, DiskCachedJira jira, PullRequestLabelCache labelCache, String repoName) throws
         IOException {
         this.jira = jira;
 
         cachedGitHubForPulls = Utils.getGitHub(
-            prop.getProperty("gh.user"),
-            prop.getProperty("gh.token"),
-            prop.getProperty("main.pullCacheDir"),
-            Integer.valueOf(prop.getProperty("main.cacheMB"))
+            user,
+            token,
+            directory.resolve("githubPullCache"),
+            mainCacheMB
         ).gitHub;
 
         this.cachedRepoForPulls = cachedGitHubForPulls.getRepository(repoName);
 
         Utils.GitHubWithCache ghForLabels = Utils.getGitHub(
-            prop.getProperty("gh.user"),
-            prop.getProperty("gh.token"),
-            prop.getProperty("main.labelCacheDir"),
-            Integer.valueOf(prop.getProperty("main.cacheMB"))
+            user,
+            token,
+            directory.resolve("githubLabelCache"),
+            mainCacheMB
         );
         this.cachedRepoForLabels = ghForLabels.gitHub.getRepository(repoName);
         this.gitHubForLabelsCache = ghForLabels.cache;
 
-        this.uncachedGitHubForWritingLabels = Utils.getGitHub(prop.getProperty("gh.write.user"),
-            prop.getProperty("gh.write.token"),
+        this.uncachedGitHubForWritingLabels = Utils.getGitHub(user,
+            token,
             null,0
         ).gitHub;
         this.uncachedRepoForWritingLabels = uncachedGitHubForWritingLabels.getRepository(repoName);

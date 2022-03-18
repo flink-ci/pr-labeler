@@ -19,7 +19,7 @@ public class DiskCacheTest {
 
     @Test
     public void testFullCycle() throws IOException {
-        DiskCache dc = new DiskCache(folder.newFolder().toString());
+        DiskCache dc = new DiskCache(folder.newFolder().toPath());
         Assert.assertNull(dc.get("test"));
 
         List<String> e = Collections.singletonList("haha");

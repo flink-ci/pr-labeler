@@ -1,10 +1,13 @@
 package de.robertmetzger;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.beust.jcommander.JCommander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,22 +19,28 @@ public class App {
     private static Logger LOG = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws Exception {
-
-        /*SLF4JBridgeHandler.install();
-        sun.util.logging.PlatformLogger .getLogger("sun.net.www.protocol.http.HttpURLConnection") .setLevel(
-            PlatformLogger.Level.ALL); */
-
-
         LOG.info("Launching PR labeler version {}", Utils.getVersion());
-        Properties prop = Utils.getConfig("/config.properties");
+        final Arguments arguments = new Arguments();
+        final JCommander jCommander = JCommander.newBuilder()
+            .addObject(arguments)
+            .programName("java -jar pr-labeler.jar")
+            .args(args)
+            .build();
 
-        String cacheDirectory = prop.getProperty("jira.cache");
+        if (arguments.help) {
+            final StringBuilder helpOutput = new StringBuilder();
+            jCommander.usage(helpOutput);
+            LOG.info(helpOutput.toString());
+            return;
+        }
 
-        DiskCachedJira jira = new DiskCachedJira(prop.getProperty("jira.url"), new DiskCache(cacheDirectory));
-        PullRequestLabelCache labelCache = new PullRequestLabelCache(prop.getProperty("main.labelCache"));
-        PullUpdater updater = new PullUpdater(prop, jira, labelCache, prop.getProperty("gh.repo"));
+        final Path cacheDirectory = Paths.get(arguments.cacheDir);
 
-        int checkNewPRSeconds = Integer.valueOf(prop.getProperty("main.checkNewPRSeconds"));
+        DiskCachedJira jira = new DiskCachedJira(arguments.jiraUrl, new DiskCache(cacheDirectory.resolve("jira")));
+        PullRequestLabelCache labelCache = new PullRequestLabelCache(cacheDirectory.resolve("labelCache"));
+        PullUpdater updater = new PullUpdater(arguments.username, arguments.githubToken, arguments.mainCacheMB, cacheDirectory, jira, labelCache, arguments.repo);
+
+        int checkNewPRSeconds = arguments.pollingIntervalInSeconds;
 
         Runnable checkPRs = () -> {
             while(true) {
@@ -55,7 +64,7 @@ public class App {
         checkPRThread.start();
 
         ScheduledExecutorService jiraInvalidatorExecutor = Executors.newScheduledThreadPool(1);
-        int invalidateJiraSeconds = Integer.valueOf(prop.getProperty("main.invalidateJiraSeconds"));
+        int invalidateJiraSeconds = arguments.validationDurationInSeconds;
 
         if(invalidateJiraSeconds > 0) {
             JiraCacheInvalidator invalidator = new JiraCacheInvalidator(jira, cacheDirectory);

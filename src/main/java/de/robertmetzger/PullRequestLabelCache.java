@@ -1,17 +1,14 @@
 package de.robertmetzger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 import org.kohsuke.github.GHLabel;
 import org.kohsuke.github.GHPullRequest;
@@ -25,20 +22,16 @@ import org.slf4j.LoggerFactory;
 public class PullRequestLabelCache {
     private static final Logger LOG = LoggerFactory.getLogger(PullRequestLabelCache.class);
 
-    private final String parent;
+    private final Path directory;
 
-    public PullRequestLabelCache(String parent) {
-        this.parent = parent;
-        File file = new File(parent);
-        if(!file.exists()) {
-            LOG.warn("parent {} does not exist. Creating it ?!", parent);
-            file.mkdirs();
-        }
+    public PullRequestLabelCache(Path directory) throws IOException {
+        Files.createDirectories(directory);
+        this.directory = directory;
     }
 
     public Collection<String> getLabelsFor(GHPullRequest pullRequest) throws IOException {
-        File fileOnDisk = locateFile(Integer.toString(pullRequest.getNumber()));
-        if(!fileOnDisk.exists()) {
+        Path fileOnDisk = locateFile(Integer.toString(pullRequest.getNumber()));
+        if(!Files.exists(fileOnDisk)) {
             return getAndCache(pullRequest, fileOnDisk);
         }
         CacheEntry entry = getFromDisk(fileOnDisk);
@@ -50,21 +43,21 @@ public class PullRequestLabelCache {
         return getAndCache(pullRequest, fileOnDisk);
     }
 
-    private CacheEntry getFromDisk(File fileOnDisk) throws IOException {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileOnDisk))) {
+    private CacheEntry getFromDisk(Path fileOnDisk) throws IOException {
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(fileOnDisk))) {
             return (CacheEntry) ois.readObject();
         } catch (ClassNotFoundException e) {
             throw new IOException("Class not found", e);
         }
     }
 
-    private Collection<String> getAndCache(GHPullRequest pullRequest, File fileOnDisk) throws
+    private Collection<String> getAndCache(GHPullRequest pullRequest, Path fileOnDisk) throws
         IOException {
         LOG.info("Getting labels for PR #{} from GitHub", pullRequest.getNumber());
         CacheEntry entry = new CacheEntry();
         entry.labels = pullRequest.getLabels().stream().map(GHLabel::getName).collect(Collectors.toList());
         entry.lastUpdated = pullRequest.getUpdatedAt();
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileOnDisk)))  {
+        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(fileOnDisk)))  {
             oos.writeObject(entry);
         }
         return entry.labels;
@@ -75,9 +68,9 @@ public class PullRequestLabelCache {
         public Collection<String> labels;
     }
 
-    private File locateFile(String key) {
+    private Path locateFile(String key) {
         String name = Base64.getEncoder().encodeToString(key.getBytes());
-        return new File(parent, name);
+        return directory.resolve(name);
     }
 
 }

@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -27,16 +28,16 @@ public class JiraCacheInvalidator {
     private static Logger LOG = LoggerFactory.getLogger(App.class);
 
     private final DiskCachedJira jira;
-    private final File dataFile;
+    private final Path dataFile;
     private final SearchRestClient searchClient;
     private final static Charset UTF8 = Charset.forName("UTF-8");
 
 
-    public JiraCacheInvalidator(DiskCachedJira jira, String dataDirectory){
+    public JiraCacheInvalidator(DiskCachedJira jira, Path dataDirectory){
         this.jira = jira;
         // initialize time-tracking
-        this.dataFile = new File(dataDirectory, "__last-invalidator-run");
-        if(!dataFile.exists()) {
+        this.dataFile = dataDirectory.resolve( "__last-invalidator-run");
+        if(!Files.exists(dataFile)) {
             LOG.warn(" !NOTE! The datafile of the invalidator did not exist   !NOTE!");
             LOG.warn(" !NOTE! Creating it now                                 !NOTE!");
             LOG.warn(" !NOTE! Make sure this is the first run of the tool, or !NOTE!");
@@ -57,13 +58,10 @@ public class JiraCacheInvalidator {
      */
 
     private void writeCurrentTimeToDataFile() throws IOException {
-        FileOutputStream fos = new FileOutputStream(dataFile);
-        Instant now = Instant.now();
-        fos.write(Long.toString(now.toEpochMilli()).getBytes(UTF8));
-        fos.close();
+        Files.write(dataFile, Long.toString(Instant.now().toEpochMilli()).getBytes(UTF8));
     }
     private Instant getLastUpdateTime() throws IOException {
-        byte[] encoded = Files.readAllBytes(dataFile.toPath());
+        byte[] encoded = Files.readAllBytes(dataFile);
         String tsString = new String(encoded, UTF8);
         return Instant.ofEpochMilli((Long.parseLong(tsString)));
     }

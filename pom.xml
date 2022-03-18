@@ -30,6 +30,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>1.72</version>
+    </dependency>
+    <dependency>
       <groupId>com.atlassian.jira</groupId>
       <artifactId>jira-rest-java-client-core</artifactId>
       <version>5.0.4</version>
@@ -108,34 +113,81 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <addResourcesToClasspath>true</addResourcesToClasspath>
-          <mainClass>de.robertmetzger.App</mainClass>
+          <source>8</source>
+          <target>8</target>
         </configuration>
       </plugin>
-
       <plugin>
-      <groupId>pl.project13.maven</groupId>
-      <artifactId>git-commit-id-plugin</artifactId>
-      <version>2.2.5</version>
-      <executions>
-        <execution>
-          <id>get-the-git-infos</id>
-          <goals>
-            <goal>revision</goal>
-          </goals>
-          <!-- *NOTE*: The default phase of revision is initialize, but in case you want to change it, you can do so by adding the phase here -->
-          <phase>initialize</phase>
-        </execution>
-      </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.0</version>
         <configuration>
-          <verbose>true</verbose>
-          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <finalName>pr-labeler</finalName>
+          <archive>
+            <manifest>
+              <mainClass>de.robertmetzger.App</mainClass>
+            </manifest>
+          </archive>
         </configuration>
-     </plugin>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <artifactSet>
+            <includes>
+              <include>*</include>
+            </includes>
+          </artifactSet>
+          <filters>
+            <filter>
+              <artifact>*</artifact>
+              <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <!-- Don't use 2.1.14 as it is incompatible with various maven versions -->
+        <version>2.1.10</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludeProperties>
+            <excludeProperty>git.build.*</excludeProperty>
+            <excludeProperty>git.branch.*</excludeProperty>
+            <excludeProperty>git.remote.*</excludeProperty>
+          </excludeProperties>
+          <generateGitPropertiesFilename>target/classes/git.properties</generateGitPropertiesFilename>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <gitDescribe>
+            <skip>true</skip>
+          </gitDescribe>
+        </configuration>
+      </plugin>
     </plugins>
 
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
