@@ -19,61 +19,58 @@ package de.robertmetzger;
 
 import com.beust.jcommander.Parameter;
 
-/**
- * Command-lind arguments for the {@link App}.
- */
+/** Command-lind arguments for the {@link App}. */
 final class Arguments {
-	@Parameter(
-			names = {"--repo", "-r"},
-			required = true,
-			description = "The repo to observe.")
-	String repo;
+  @Parameter(
+      names = {"--repo", "-r"},
+      required = true,
+      description = "The repo to observe.")
+  String repo;
 
-	@Parameter(
-			names = {"--user", "-u"},
-			required = true,
-			description = "The GitHub account name to use for labeling PRs.")
-	String username;
+  @Parameter(
+      names = {"--user", "-u"},
+      required = true,
+      description = "The GitHub account name to use for labeling PRs.")
+  String username;
 
-	@Parameter(
-			names = {"--token", "-t"},
-			required = true,
-			description = "The GitHub authorization token with write permissions for the repository.")
-	String githubToken;
+  @Parameter(
+      names = {"--token", "-t"},
+      required = true,
+      description = "The GitHub authorization token with write permissions for the repository.")
+  String githubToken;
 
-	@Parameter(
-			names = {"--jiraUrl", "-j"},
-			required = true,
-			description = "The JIRA project.")
-	String jiraUrl;
+  @Parameter(
+      names = {"--jiraUrl", "-j"},
+      required = true,
+      description = "The JIRA project.")
+  String jiraUrl;
 
-	@Parameter(
-			names = {"--pollInterval", "-p"},
-			required = false,
-			description = "The polling interval in seconds.")
-	int pollingIntervalInSeconds = 300;
+  @Parameter(
+      names = {"--pollInterval", "-p"},
+      required = false,
+      description = "The polling interval in seconds.")
+  int pollingIntervalInSeconds = 300;
 
-	@Parameter(
-			names = {"--validationDuration", "-i"},
-			required = false,
-			description = "The validation duration for fetched jira labels.")
-	int validationDurationInSeconds = 300;
+  @Parameter(
+      names = {"--validationDuration", "-i"},
+      required = false,
+      description = "The validation duration for fetched jira labels.")
+  int validationDurationInSeconds = 300;
 
-	@Parameter(
-			names = {"--cacheDir", "-c"},
-			required = true,
-			description = "The directory where data is cached."
-	)
-	String cacheDir;
+  @Parameter(
+      names = {"--cacheDir", "-c"},
+      required = true,
+      description = "The directory where data is cached.")
+  String cacheDir;
 
-	@Parameter(
-        names = {"--mainCacheSize"},
-        required = false)
-	int mainCacheMB;
+  @Parameter(
+      names = {"--mainCacheSize"},
+      required = false)
+  int mainCacheMB;
 
-	@Parameter(
-			names = {"--help", "-h"},
-			help = true,
-			hidden = true)
-	boolean help = false;
+  @Parameter(
+      names = {"--help", "-h"},
+      help = true,
+      hidden = true)
+  boolean help = false;
 }

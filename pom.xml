@@ -164,6 +164,28 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.4.2</version>
+        <configuration>
+          <java>
+            <googleJavaFormat>
+              <version>1.7</version>
+            </googleJavaFormat>
+            <removeUnusedImports />
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <id>spotless-apply</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
         <!-- Don't use 2.1.14 as it is incompatible with various maven versions -->
