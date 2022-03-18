@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DiskCache implements Cache {
-  private static Logger LOG = LoggerFactory.getLogger(DiskCache.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DiskCache.class);
 
   private final Path directory;
 

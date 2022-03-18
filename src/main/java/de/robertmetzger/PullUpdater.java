@@ -36,7 +36,7 @@ public class PullUpdater {
   private final GHRepository cachedRepoForLabels;
   private final PullRequestLabelCache labelCache;
 
-  private DiskCachedJira jira;
+  private final DiskCachedJira jira;
 
   public PullUpdater(
       String user,
@@ -64,7 +64,7 @@ public class PullUpdater {
     this.labelCache = labelCache;
   }
 
-  public void checkPullRequests() throws IOException, DiskCachedJira.JiraException {
+  public void checkPullRequests() {
     try {
       LOG.info(
           "Checking pull requests. GitHub API limits read: {}, write: {}",
@@ -151,7 +151,7 @@ public class PullUpdater {
             pullRequest.removeLabels(toRemove.toArray(new String[] {}));
           }
         } else {
-          LOG.debug("Skipping PR '{}'", pullRequest.getTitle());
+          LOG.trace("Skipping PR '{}'", pullRequest.getTitle());
         }
       } catch (HttpException e) {
         LOG.error(
@@ -182,18 +182,16 @@ public class PullUpdater {
     try {
       return cachedRepoForLabels.getLabel(labelString).getName();
     } catch (FileNotFoundException noLabel) {
-      //  LOG.debug("Label '{}' did not exist", labelString, noLabel);
       LOG.info("Label '{}' did not exist, creating it", labelString);
-      gitHubForLabelsCache
-          .evictAll(); // empty the cache for getting labels so that the newly created label can be
-      // found
+      // empty the cache for getting labels so that the newly created label can be found
+      gitHubForLabelsCache.evictAll();
       return uncachedRepoForWritingLabels.createLabel(labelString, LABEL_COLOR).getName();
     }
   }
 
-  private static Pattern pattern = Pattern.compile("(?i).*(FLINK-[0-9]+).*");
+  private static final Pattern pattern = Pattern.compile("(?i).*(FLINK-[0-9]+).*");
 
-  public static String extractJiraId(String title) {
+  static String extractJiraId(String title) {
     Matcher matcher = pattern.matcher(title);
     if (matcher.find()) {
       return matcher.group(1).toUpperCase();
@@ -201,7 +199,7 @@ public class PullUpdater {
     return null;
   }
 
-  public static Set<String> normalizeComponents(List<String> components) {
+  static Set<String> normalizeComponents(List<String> components) {
     if (components.size() == 0) {
       return Collections.singleton(COMPONENT_PREFIX + "<none>");
     }

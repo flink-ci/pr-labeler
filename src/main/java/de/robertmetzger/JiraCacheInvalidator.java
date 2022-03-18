@@ -4,7 +4,7 @@ import com.atlassian.jira.rest.client.api.SearchRestClient;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -24,12 +24,11 @@ import org.slf4j.LoggerFactory;
  */
 public class JiraCacheInvalidator {
 
-  private static Logger LOG = LoggerFactory.getLogger(App.class);
+  private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   private final DiskCachedJira jira;
   private final Path dataFile;
   private final SearchRestClient searchClient;
-  private static final Charset UTF8 = Charset.forName("UTF-8");
 
   public JiraCacheInvalidator(DiskCachedJira jira, Path dataDirectory) {
     this.jira = jira;
@@ -56,12 +55,13 @@ public class JiraCacheInvalidator {
    */
 
   private void writeCurrentTimeToDataFile() throws IOException {
-    Files.write(dataFile, Long.toString(Instant.now().toEpochMilli()).getBytes(UTF8));
+    Files.write(
+        dataFile, Long.toString(Instant.now().toEpochMilli()).getBytes(StandardCharsets.UTF_8));
   }
 
   private Instant getLastUpdateTime() throws IOException {
     byte[] encoded = Files.readAllBytes(dataFile);
-    String tsString = new String(encoded, UTF8);
+    String tsString = new String(encoded, StandardCharsets.UTF_8);
     return Instant.ofEpochMilli((Long.parseLong(tsString)));
   }
 
@@ -72,7 +72,7 @@ public class JiraCacheInvalidator {
     // search for tickets
     DateTimeFormatter jqlDateFormat =
         DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm").withZone(ZoneId.of("UTC"));
-    ;
+
     String jql =
         "project = FLINK AND updatedDate  >= \""
             + jqlDateFormat.format(lastUpdated)
